@@ -20,7 +20,7 @@
     "symfony/phpunit-bridge": "^2.7 || ^3.0",
     "phpunit/phpunit": "4.8.*"
   },
-  "autoload": {f
+  "autoload": {
     "psr-4": { "Devoralive\\TrafficLimit\\": "" }
   },
   "config": {
