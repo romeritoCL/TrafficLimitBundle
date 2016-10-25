@@ -13,7 +13,7 @@
     "php": ">=5.4",
     "symfony/framework-bundle": "^2.7 || ^3.0",
     "symfony/yaml": "^2.7 || ^3.0",
-    "snc/redis-bundle": "2.x-dev"
+    "snc/redis-bundle": "dev-master"
   },
   "require-dev": {
     "predis/predis": "^1.0",
@@ -28,7 +28,7 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "1.0-dev"
+      "dev-master": "2.0.0"
     }
   }
 }
