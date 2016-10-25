@@ -1,0 +1,33 @@
+{
+  "name": "devoralive/traffic-limit-bundle",
+  "type": "symfony-bundle",
+  "description": "A Redis based traffic handler for max request limit in Symfony 2",
+  "keywords": ["redis", "request", "limit", "symfony"],
+  "homepage": "https://github.com/romeritoCL/TrafficLimitBundle",
+  "license": "MIT",
+  "authors": [{
+    "name": "César Romero",
+    "email": "romero.latorre@gmail.com"
+  }],
+  "require": {
+    "php": ">=5.4",
+    "symfony/framework-bundle": "^2.7 || ^3.0",
+    "symfony/yaml": "^2.7 || ^3.0"
+  },
+  "require-dev": {
+    "predis/predis": "^1.0",
+    "symfony/phpunit-bridge": "^2.7 || ^3.0",
+    "phpunit/phpunit": "4.8.*"
+  },
+  "autoload": {
+    "psr-4": { "Devoralive\\TrafficLimit\\": "" }
+  },
+  "config": {
+    "bin-dir": "bin/"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "2.x-dev"
+    }
+  }
+}

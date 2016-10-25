@@ -1,0 +1,6 @@
+services:
+    traffic_limit:
+        class: Devoralive\TrafficLimit\Services\TrafficLimitService
+        arguments:
+            - '%traffic_limit.enabled%'
+            - '%traffic_limit.redis_dsn%'
