@@ -118,7 +118,7 @@ class TrafficLimitService
      *
      * @return int
      */
-    public function clearPartnerRequests($key): int
+    public function clearPartnerRequests($key)
     {
         $partnerActiveRequests = $this->sncClient->keys(
             $this->getPrefix() . $key . '*'
