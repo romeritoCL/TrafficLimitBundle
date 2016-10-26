@@ -2,15 +2,16 @@
 
 namespace Devoralive\TrafficLimit\DependencyInjection;
 
+use Devoralive\TrafficLimit\Services\TrafficLimitService;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\DependencyInjection\Loader;
 
 /**
- * This is the class that loads and manages your bundle configuration
+ * TrafficLimitExtension
  *
- * To learn more see {@link http://symfony.com/doc/current/cookbook/bundles/extension.html}
+ * Register services, check dependencies.
  */
 class TrafficLimitExtension extends Extension
 {
@@ -19,20 +20,29 @@ class TrafficLimitExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
+        // Check SncRedisBundle is enabled:
+        if (!array_key_exists('SncRedisBundle', $container->getParameter('kernel.bundles'))) {
+            throw new \RuntimeException('The "SncRedisBundle" must be configured');
+        }
+
+        // Merge configs of environments
         $config = array();
         foreach ($configs as $subConfig) {
             $config = array_merge($config, $subConfig);
         }
 
-        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
-
-        if (!isset($config['redis_dsn'])) {
-            throw new \InvalidArgumentException('The "redis_dsn" option must be set');
+        // Create the traffic_limit.services:
+        foreach ($config as $key => $clientConfig) {
+            $container->register('traffic_limit.' . $key, TrafficLimitService::class)
+                ->addArgument($clientConfig['enabled'])
+                ->addArgument(
+                    new Reference(
+                        'snc_redis.' . $clientConfig['snc_client']
+                    )
+                )
+                ->addArgument($clientConfig['amount'])
+                ->addArgument($clientConfig['ttl'])
+                ->addArgument($key);
         }
-
-        $container->setParameter('traffic_limit.enabled', $config['enabled']);
-        $container->setParameter('traffic_limit.redis_dsn', $config['redis_dsn']);
-
-        $loader->load('services.yml');
     }
 }
