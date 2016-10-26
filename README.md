@@ -94,6 +94,7 @@ infinite configurations. All are available in the container:
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 namespace AppBundle\Controller;
 
@@ -110,19 +111,27 @@ class ApiController
      * @param string $ip
      *
      * @return string 
+     *
+     * @throws TooManyRequestsHttpException $e
      */
     public function getLocationAction(Request $request, $ip)
     {
-        $this->get('traffic_limit.low_limit')->processRequest(
-            $request->getClientIp()
-        );
-        $ipRangeManager = $this->get('ip_range_manager');
-        $ipRange        = $ipRangeManager->getIpRangeByIp($ip);
-
-        return new JsonResponse($ipRange);
+        try {
+            $this->get('traffic_limit.low_limit')->processRequest(
+                $request->getClientIp()
+            );
+                    
+            //do some stuff...
+            
+            return new JsonResponse('');
+        } catch (TooManyRequestsHttpException $e) {
+            //handle exception or throw it
+        }
     }
 }
 ```
 
 You can define the key, so you can limit the request by IP, userId, or anything you 
 can identify as a variable.
+
+If the limit of requests is reached the method "processRequest" will return a exception.
