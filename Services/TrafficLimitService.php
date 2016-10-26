@@ -33,11 +33,6 @@ class TrafficLimitService
     }
 
     /**
-     * @var ContainerInterface
-     */
-    protected $container;
-
-    /**
      * SncRedis Client
      *
      * @var \Snc\RedisBundle\Client\Phpredis\Client
@@ -78,6 +73,16 @@ class TrafficLimitService
     protected $sncService;
 
     /**
+     * Get the prefix of the service
+     *
+     * @return string
+     */
+    private function getPrefix()
+    {
+        return self::TRAFFIC_LIMIT_PREFIX. ':' . $this->serviceName . ':KEY:';
+    }
+
+    /**
      * Adds a request to the redis queue
      *
      * @param string $key
@@ -86,7 +91,7 @@ class TrafficLimitService
      */
     private function addRequest($key)
     {
-        $key = self::TRAFFIC_LIMIT_PREFIX .':KEY:' . $key . ':TIMESTAMP:' . time();
+        $key = $this->getPrefix() . $key . ':' . time();
         $this->sncClient->setEx($key, $this->ttl, null);
         return $this->getCurrentRequests($key);
     }
@@ -101,7 +106,7 @@ class TrafficLimitService
     public function getCurrentRequests($key)
     {
         $activeRequests = $this->sncClient->keys(
-            self::TRAFFIC_LIMIT_PREFIX . ':KEY:' . $key . '*'
+            $this->getPrefix() . $key . '*'
         );
         return count($activeRequests);
     }
@@ -116,7 +121,7 @@ class TrafficLimitService
     public function clearPartnerRequests($key): int
     {
         $partnerActiveRequests = $this->sncClient->keys(
-            self::TRAFFIC_LIMIT_PREFIX . ':KEY:' . $key . '*'
+            $this->getPrefix() . $key . '*'
         );
         //Be sure to send only valid arrays to del command:
         if (!empty($partnerActiveRequests)) {
