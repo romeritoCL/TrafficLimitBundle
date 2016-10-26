@@ -12,6 +12,8 @@ use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
  */
 class TrafficLimitService
 {
+    const TRAFFIC_LIMIT_PREFIX = 'TFS';
+
     /**
      * TrafficLimitService constructor.
      *
@@ -74,14 +76,82 @@ class TrafficLimitService
      * @var \Snc\RedisBundle\Client\Phpredis\Client
      */
     protected $sncService;
-    
-    /**
-     * Throw new exception
-     *
-     * @throws TooManyRequestsHttpException
-     */
-    public function addRequest()
-    {
 
+    /**
+     * Adds a request to the redis queue
+     *
+     * @param string $key
+     *
+     * @return int
+     */
+    private function addRequest($key)
+    {
+        $key = self::TRAFFIC_LIMIT_PREFIX .':KEY:' . $key . ':TIMESTAMP:' . time();
+        $this->sncClient->setEx($key, $this->ttl, null);
+        return $this->getCurrentRequests($key);
+    }
+
+    /**
+     * Gets the amount of current requests by key
+     *
+     * @param string $key
+     *
+     * @return int
+     */
+    public function getCurrentRequests($key)
+    {
+        $activeRequests = $this->sncClient->keys(
+            self::TRAFFIC_LIMIT_PREFIX . ':KEY:' . $key . '*'
+        );
+        return count($activeRequests);
+    }
+
+    /**
+     * Clears the active requests and return the active requests, normally it's 0 unless error occurs.
+     *
+     * @param string $key
+     *
+     * @return int
+     */
+    public function clearPartnerRequests($key): int
+    {
+        $partnerActiveRequests = $this->sncClient->keys(
+            self::TRAFFIC_LIMIT_PREFIX . ':KEY:' . $key . '*'
+        );
+        //Be sure to send only valid arrays to del command:
+        if (!empty($partnerActiveRequests)) {
+            $this->sncClient->del($partnerActiveRequests);
+        }
+        return $this->getCurrentRequests($key);
+    }
+
+    /**
+     * Check Not max request allowed reached
+     *
+     * @param string $key
+     *
+     * @return int
+     */
+    public function processRequest($key)
+    {
+        if ($this->getCurrentRequests($key) < $this->amount) {
+            return $this->addRequest($key);
+        }
+        throw new TooManyRequestsHttpException(
+            60,
+            'Too many request, please retry in 1 minute'
+        );
+    }
+
+    /**
+     * Process the request even if max has been exceeded
+     *
+     * @param string $key
+     *
+     * @return int
+     */
+    public function processRequestForce($key)
+    {
+        return $this->addRequest($key);
     }
 }
