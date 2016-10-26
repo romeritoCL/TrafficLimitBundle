@@ -91,7 +91,7 @@ class TrafficLimitService
      */
     private function addRequest($key)
     {
-        $key = $this->getPrefix() . $key . ':' . time();
+        $key = $this->getPrefix() . $key . ':' . microtime(true);
         $this->sncClient->setEx($key, $this->ttl, null);
         return $this->getCurrentRequests($key);
     }
